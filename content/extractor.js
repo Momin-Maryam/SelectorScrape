@@ -58,39 +58,53 @@ function doScrapeStep() {
       const config = data.scrapeConfig;
       if (!config) return;
 
-      const { fields, nextPageSelector, maxPages } = config;
-      const newRows = extractRows(fields);
-      const combinedResults = (data.scrapeResults || []).concat(newRows);
-      const pageCount = (data.scrapePageCount || 0) + 1;
+      try {
+        const { fields, nextPageSelector, maxPages } = config;
+        const newRows = extractRows(fields);
+        const combinedResults = (data.scrapeResults || []).concat(newRows);
+        const pageCount = (data.scrapePageCount || 0) + 1;
 
-      chrome.storage.local.set(
-        { scrapeResults: combinedResults, scrapePageCount: pageCount },
-        () => {
-          if (pageCount >= maxPages) {
-            finishScrape();
-            return;
+        chrome.storage.local.set(
+          { scrapeResults: combinedResults, scrapePageCount: pageCount },
+          () => {
+            if (pageCount >= maxPages) {
+              finishScrape();
+              return;
+            }
+
+            let nextEl = null;
+            try {
+              nextEl = nextPageSelector ? document.querySelector(nextPageSelector) : null;
+            } catch (selectorErr) {
+              scrapeError(`Invalid "next page" selector: ${selectorErr.message}`);
+              return;
+            }
+
+            if (!nextEl) {
+              finishScrape(); // no more pages found
+              return;
+            }
+
+            // Clicking navigates the page — the content script reloads fresh,
+            // and the onload check below will continue the scrape automatically.
+            nextEl.click();
           }
-
-          const nextEl = nextPageSelector
-            ? document.querySelector(nextPageSelector)
-            : null;
-
-          if (!nextEl) {
-            finishScrape(); // no more pages found
-            return;
-          }
-
-          // Clicking navigates the page — the content script reloads fresh,
-          // and the onload check below will continue the scrape automatically.
-          nextEl.click();
-        }
-      );
+        );
+      } catch (err) {
+        scrapeError(err.message);
+      }
     }
   );
 }
 
 function finishScrape() {
   chrome.storage.local.set({ scrapeStatus: "done" });
+}
+
+// Marks the scrape as failed with a message the popup can show, instead of leaving
+// it stuck on "running" forever with no way for the user to know something broke.
+function scrapeError(message) {
+  chrome.storage.local.set({ scrapeStatus: "error", scrapeErrorMessage: message });
 }
 
 // On every page load, check if a multi-page scrape is currently in progress.
@@ -102,6 +116,155 @@ chrome.storage.local.get(["scrapeStatus"], (data) => {
 });
 
 // ---------- End multi-page scraping ----------
+
+// ---------- Nested/child selector scraping (listing -> detail page merge, with optional pagination) ----------
+
+// Resolves an element's link to an absolute URL. Prefers the .href DOM property
+// (browsers auto-resolve this for anchors), falls back to manually resolving
+// the raw href attribute against the current page's URL.
+function resolveHref(el) {
+  if (el.href) return el.href;
+  const raw = el.getAttribute("href") || "";
+  try {
+    return new URL(raw, window.location.href).href;
+  } catch (err) {
+    return raw;
+  }
+}
+
+// Called once we've finished collecting detail data for the current listing page
+// (or found no detail links on it at all). Merges this page's rows into the running
+// total, then either moves on to the next listing page or finishes the whole scrape.
+function nestedMergeAndTransition() {
+  chrome.storage.local.get(
+    ["nestedConfig", "nestedAllResults", "nestedPageRows", "nestedPageCount", "nestedNextPageUrl"],
+    (data) => {
+      const config = data.nestedConfig;
+      if (!config) return;
+
+      const allResults = (data.nestedAllResults || []).concat(data.nestedPageRows || []);
+      const pageCount = data.nestedPageCount || 0;
+      const nextPageUrl = data.nestedNextPageUrl;
+      const maxPages = config.maxPages || 1;
+
+      chrome.storage.local.set({ nestedAllResults: allResults }, () => {
+        if (pageCount >= maxPages || !nextPageUrl) {
+          chrome.storage.local.set({ nestedStatus: "done" });
+          return;
+        }
+        chrome.storage.local.set({ nestedPhase: "listing" }, () => {
+          window.location.href = nextPageUrl;
+        });
+      });
+    }
+  );
+}
+
+// Marks the nested scrape as failed with a message the popup can show.
+function nestedError(message) {
+  chrome.storage.local.set({ nestedStatus: "error", nestedErrorMessage: message });
+}
+
+// Runs a "listing step": extract this page's parent fields + detail links + the next-page
+// URL (if a pagination selector is configured), then either dive into the first detail page
+// or, if there are none, merge and move straight to the next listing page.
+function doNestedListingStep() {
+  chrome.storage.local.get(["nestedConfig", "nestedPageCount"], (data) => {
+    const config = data.nestedConfig;
+    if (!config) return;
+
+    try {
+      const { fields, linkSelector, nextPageSelector, maxDetailPages } = config;
+
+      const rows = extractRows(fields);
+      const linkEls = Array.from(document.querySelectorAll(linkSelector));
+      const links = linkEls.map(resolveHref);
+
+      let nextEl = null;
+      if (nextPageSelector) {
+        nextEl = document.querySelector(nextPageSelector);
+      }
+      const nextPageUrl = nextEl ? resolveHref(nextEl) : null;
+
+      const count = Math.min(rows.length, links.length, maxDetailPages || 10);
+      const slicedRows = rows.slice(0, count);
+      const slicedLinks = links.slice(0, count);
+      const pageCount = (data.nestedPageCount || 0) + 1;
+
+      chrome.storage.local.set(
+        {
+          nestedPageRows: slicedRows,
+          nestedLinks: slicedLinks,
+          nestedIndex: 0,
+          nestedNextPageUrl: nextPageUrl,
+          nestedPageCount: pageCount,
+        },
+        () => {
+          if (slicedLinks.length === 0) {
+            nestedMergeAndTransition(); // no detail links on this page — skip straight to next page
+            return;
+          }
+          chrome.storage.local.set({ nestedPhase: "detail" }, () => {
+            window.location.href = slicedLinks[0];
+          });
+        }
+      );
+    } catch (err) {
+      nestedError(err.message);
+    }
+  });
+}
+
+// Runs a "detail step": we've just navigated to one item's detail page.
+// Extract the child fields here, merge into the matching row, then move to the
+// next detail page — or, if that was the last one, merge this page and transition.
+function doNestedDetailStep() {
+  chrome.storage.local.get(
+    ["nestedConfig", "nestedPageRows", "nestedLinks", "nestedIndex"],
+    (data) => {
+      const config = data.nestedConfig;
+      if (!config) return;
+
+      try {
+        const pageRows = data.nestedPageRows || [];
+        const links = data.nestedLinks || [];
+        const index = data.nestedIndex || 0;
+
+        const childRows = extractRows(config.childFields || []);
+        const childRow = childRows[0] || {}; // detail pages have one instance of each field
+
+        if (pageRows[index]) {
+          pageRows[index] = Object.assign({}, pageRows[index], childRow);
+        }
+
+        const nextIndex = index + 1;
+
+        chrome.storage.local.set({ nestedPageRows: pageRows, nestedIndex: nextIndex }, () => {
+          if (nextIndex >= links.length) {
+            nestedMergeAndTransition(); // done with all detail pages for this listing page
+            return;
+          }
+          window.location.href = links[nextIndex];
+        });
+      } catch (err) {
+        nestedError(err.message);
+      }
+    }
+  );
+}
+
+// On every page load, check if a nested scrape is in progress and continue the right phase.
+chrome.storage.local.get(["nestedStatus", "nestedPhase"], (data) => {
+  if (data.nestedStatus === "running") {
+    if (data.nestedPhase === "detail") {
+      setTimeout(doNestedDetailStep, 400);
+    } else {
+      setTimeout(doNestedListingStep, 400);
+    }
+  }
+});
+
+// ---------- End nested/child selector scraping ----------
 
 // ---------- Point-and-click element picker ----------
 
@@ -267,6 +430,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return;
   }
 
+  if (message.action === "runNestedListingStep") {
+    doNestedListingStep();
+    sendResponse({ success: true });
+    return;
+  }
+
   if (message.action !== "extractData") {
     return; // not for us
   }
@@ -289,4 +458,4 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   return true;
 });
 
-console.log("Content script loaded on:", window.location.href);   
+console.log("Content script loaded on:", window.location.href);

@@ -2,45 +2,168 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Configurable Data Extractor</title>
+  <title>SelectorScrape</title>
   <link rel="stylesheet" href="popup.css" />
 </head>
 <body>
   <div class="container">
-    <h1>Data Extractor</h1>
+    <div class="header-row">
+      <h1>SelectorScrape</h1>
+      <button id="helpBtn" type="button" class="icon-btn" title="How to use">i</button>
+    </div>
 
-    <div class="add-field-section">
-      <input type="text" id="fieldName" placeholder="Field name (e.g. Title)" />
-      <input type="text" id="fieldSelector" placeholder="CSS selector (e.g. .price_color)" />
-      <select id="fieldType">
-        <option value="text">Text</option>
-        <option value="link">Link (href)</option>
-        <option value="image">Image (src)</option>
-        <option value="attribute">Attribute</option>
-        <option value="html">HTML</option>
-        <option value="table">Table</option>
-      </select>
-      <input type="text" id="fieldAttributeName" placeholder="Attribute name (e.g. data-id)" style="display: none;" />
-      <button id="pickElementBtn" type="button">Pick Element on Page</button>
-      <button id="addFieldBtn">Add Field</button>
+    <div class="section-header">
+      <span class="section-label">1. Define Fields</span>
+    </div>
+    <div class="form-block">
+      <div class="input-row">
+        <input type="text" id="fieldName" placeholder="Field name" />
+        <div class="input-with-icon">
+          <input type="text" id="fieldSelector" placeholder="CSS selector" />
+          <button id="pickFieldBtn" type="button" class="pick-icon" title="Pick element from page">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="input-row">
+        <select id="fieldType">
+          <option value="text">Text</option>
+          <option value="link">Link (href)</option>
+          <option value="image">Image (src)</option>
+          <option value="attribute">Attribute</option>
+          <option value="html">HTML</option>
+          <option value="table">Table</option>
+        </select>
+        <input type="text" id="fieldAttributeName" placeholder="Attribute name" style="display: none;" />
+      </div>
+      <button id="addFieldBtn" class="btn-primary full-width">Add Field</button>
     </div>
 
     <ul id="fieldList" class="field-list">
       <!-- Added fields will appear here dynamically -->
     </ul>
 
-    <div class="pagination-section">
-      <input type="text" id="nextPageSelector" placeholder="Next page selector (optional, e.g. .next a)" />
-      <input type="number" id="maxPages" placeholder="Max pages" value="5" min="1" max="100" />
-      <button id="scrapeBtn" type="button">Scrape All Pages</button>
+    <div class="section-header collapsible" id="paginationToggle">
+      <span class="section-label">2. Pagination (optional)</span>
+      <button type="button" class="chevron-btn" id="paginationChevron">▾</button>
+    </div>
+    <div class="form-block" id="paginationBody" style="display: none;">
+      <div class="input-row">
+        <div class="input-with-icon" style="flex: 3;">
+          <input type="text" id="nextPageSelector" placeholder="Next page selector" />
+          <button id="pickNextPageBtn" type="button" class="pick-icon" title="Pick element from page">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg>
+          </button>
+        </div>
+        <input type="number" id="maxPages" placeholder="Max pages" value="5" min="1" max="100" style="flex: 1; min-width: 70px;" />
+      </div>
+      <button id="scrapeBtn" type="button" class="btn-accent full-width">Scrape All Pages</button>
     </div>
 
-    <div class="actions">
-      <button id="extractBtn">Extract Data</button>
-      <button id="exportBtn">Export CSV</button>
+    <div class="section-header collapsible" id="nestedToggle">
+      <span class="section-label">3. Detail Page / Nested Scraping (optional)</span>
+      <button type="button" class="chevron-btn" id="nestedChevron">▾</button>
+    </div>
+    <div class="form-block" id="nestedBody" style="display: none;">
+      <div class="input-with-icon">
+        <input type="text" id="detailLinkSelector" placeholder="Detail link selector" />
+        <button id="pickDetailLinkBtn" type="button" class="pick-icon" title="Pick element from page">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg>
+        </button>
+      </div>
+
+      <div class="form-block" style="margin-bottom: 0;">
+        <div class="input-row">
+          <input type="text" id="childFieldName" placeholder="Child field name" />
+          <div class="input-with-icon">
+            <input type="text" id="childFieldSelector" placeholder="CSS selector on detail page" />
+            <button id="pickChildFieldBtn" type="button" class="pick-icon" title="Pick element from page">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="input-row">
+          <select id="childFieldType">
+            <option value="text">Text</option>
+            <option value="link">Link (href)</option>
+            <option value="image">Image (src)</option>
+            <option value="attribute">Attribute</option>
+            <option value="html">HTML</option>
+            <option value="table">Table</option>
+          </select>
+          <input type="text" id="childFieldAttributeName" placeholder="Attribute name" style="display: none;" />
+        </div>
+        <button id="addChildFieldBtn" type="button" class="btn-primary full-width">Add Child Field</button>
+      </div>
+
+      <ul id="childFieldList" class="field-list">
+        <!-- Added child fields will appear here dynamically -->
+      </ul>
+
+      <input type="number" id="maxDetailPages" placeholder="Max detail pages" value="10" min="1" max="100" />
+      <button id="nestedScrapeBtn" type="button" class="btn-accent full-width">Scrape With Detail Pages</button>
+    </div>
+
+    <div class="section-header">
+      <span class="section-label">4. Run &amp; Export</span>
+    </div>
+    <div class="form-block">
+      <button id="extractBtn" class="btn-accent full-width">Extract Data</button>
+      <div class="actions">
+        <button id="exportBtn" class="btn-primary">Export CSV</button>
+        <button id="exportJsonBtn" type="button" class="btn-primary">Export JSON</button>
+        <button id="exportExcelBtn" type="button" class="btn-primary">Export Excel</button>
+      </div>
+    </div>
+
+    <div class="section-header">
+      <span class="section-label">5. Save / Reuse Config</span>
+    </div>
+    <div class="form-block">
+      <div class="actions">
+        <button id="exportSitemapBtn" type="button" class="btn-secondary">Export Sitemap (JSON)</button>
+        <button id="importSitemapBtn" type="button" class="btn-secondary">Import Sitemap (JSON)</button>
+        <input type="file" id="importSitemapInput" accept="application/json" style="display: none;" />
+      </div>
     </div>
 
     <div id="status" class="status"></div>
+
+    <div id="previewSection" class="preview-section" style="display: none;">
+      <div class="preview-header">Preview (first 5 rows)</div>
+      <div class="preview-table-wrapper">
+        <table id="previewTable"></table>
+      </div>
+    </div>
+  </div>
+
+  <div id="helpModal" class="modal-overlay" style="display: none;">
+    <div class="modal-box">
+      <div class="modal-header">
+        <span>How to use SelectorScrape</span>
+        <button id="closeHelpBtn" type="button" class="icon-btn">✕</button>
+      </div>
+      <div class="modal-body">
+        <p><strong>Basic flow:</strong></p>
+        <ol>
+          <li>Add a field: type a <em>name</em> + <em>CSS selector</em>, choose a type, click <strong>Add Field</strong> — or click the crosshair icon next to any selector box and click directly on the element you want on the page (press <strong>Esc</strong> anytime to cancel picking without selecting anything — your cursor turns into a crosshair while picking is active).</li>
+          <li>(Optional) Expand <strong>Pagination</strong> to set a Next Page Selector + max pages, for scraping multiple pages automatically.</li>
+          <li>(Optional) Expand <strong>Detail Page / Nested Scraping</strong> to set a Detail Link Selector + child fields, to pull extra data from each item's detail page.</li>
+          <li>Click <strong>Extract Data</strong> (current page only), <strong>Scrape All Pages</strong> (pagination only, no detail pages), or <strong>Scrape With Detail Pages</strong> (visits each item's detail page — and if you've also filled in a Next Page Selector, it walks every listing page too, combining both).</li>
+          <li>Export your results as CSV, JSON, or Excel — or save your whole field setup as a Sitemap (JSON) to reuse later.</li>
+        </ol>
+        <p><strong>What each button does:</strong></p>
+        <ul>
+          <li><strong>Crosshair icon</strong> — click, then click any element on the page to auto-fill that specific selector box</li>
+          <li><strong>Add Field / Add Child Field</strong> — saves the field you just filled in</li>
+          <li><strong>Scrape All Pages</strong> — extracts data, then follows your "next page" link automatically</li>
+          <li><strong>Scrape With Detail Pages</strong> — visits each item's detail page and merges the extra data in</li>
+          <li><strong>Export Sitemap / Import Sitemap</strong> — save or reload your whole field configuration</li>
+        </ul>
+        <p><strong>Important:</strong> after reloading the extension in <code>chrome://extensions</code>, you must <strong>hard-refresh the page tab</strong> (F5) before using the extension there again — otherwise you'll see a "could not reach the page" error.</p>
+        <p>During a multi-page or nested scrape, the popup will close automatically as the page navigates — that's expected. Just reopen the popup after a few seconds to check progress.</p>
+      </div>
+    </div>
   </div>
 
   <script src="popup.js"></script>
