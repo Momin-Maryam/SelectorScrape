@@ -1,16 +1,16 @@
 :root {
-  --bg-page: #ffffff;
-  --bg-panel: #f2f2f2;
-  --bg-panel-alt: #e2e2e2;
-  --accent: #2b2b2b;
-  --accent-dark: #111111;
-  --btn-secondary: #3a3a3a;
-  --btn-secondary-dark: #1a1a1a;
-  --text-primary: #000000;
-  --text-secondary: #1a1a1a;
-  --border-color: #e2e2e2;
-  --border-dark: #2b2b2b;
+  --bg-page: #efe8d8;
+  --layer-raised: #faf6ec;
+  --layer-inset: #e8dfc9;
+  --accent: #12474a;
+  --accent-hover: #0d3739;
+  --accent-soft: #d7ecdf;
+  --accent-tan: #e7dcc2;
+  --text-primary: #22282a;
+  --text-secondary: #766b5c;
+  --border-color: #d8cdb4;
 }
+
 * {
   box-sizing: border-box;
 }
@@ -25,7 +25,7 @@ body {
 }
 
 .container {
-  padding: 16px;
+  padding: 18px;
   max-height: 620px;
   overflow-y: auto;
 }
@@ -34,23 +34,24 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 h1 {
-  font-size: 16px;
+  font-size: 17px;
   margin: 0;
-  color: var(--accent-dark);
+  color: var(--accent);
   font-weight: 700;
+  letter-spacing: 0.2px;
 }
 
 .icon-btn {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
-  border: 1px solid var(--accent-dark);
-  background: transparent;
-  color: var(--accent-dark);
+  border: 1.5px solid var(--accent);
+  background: var(--layer-raised);
+  color: var(--accent);
   font-size: 12px;
   font-weight: bold;
   font-style: italic;
@@ -60,21 +61,22 @@ h1 {
   justify-content: center;
   padding: 0;
   line-height: 1;
+  box-shadow: 0 1px 3px rgba(34, 40, 42, 0.1);
 }
 
 .icon-btn:hover {
-  background: var(--accent-dark);
+  background: var(--accent);
   color: #ffffff;
 }
 
-/* Section headers: just a label + a thin line underneath. No cards, no boxes. */
+/* Section headers: label + a soft line underneath. No boxed cards. */
 .section-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 14px;
-  margin-bottom: 8px;
-  padding-bottom: 5px;
+  margin-top: 16px;
+  margin-bottom: 10px;
+  padding-bottom: 6px;
   border-bottom: 1px solid var(--border-color);
 }
 
@@ -82,14 +84,14 @@ h1 {
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.5px;
   color: var(--text-secondary);
 }
 
 .chevron-btn {
   background: none;
   border: none;
-  color: var(--accent-dark);
+  color: var(--accent);
   font-size: 12px;
   cursor: pointer;
   padding: 2px 4px;
@@ -100,17 +102,16 @@ h1 {
   transform: rotate(180deg);
 }
 
-/* Plain flex containers for form groups — no background, no border, just spacing */
 .form-block {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: 9px;
+  margin-bottom: 9px;
 }
 
 .input-row {
   display: flex;
-  gap: 8px;
+  gap: 9px;
 }
 
 .input-row > input,
@@ -122,7 +123,7 @@ h1 {
 .input-with-icon {
   display: flex;
   flex: 1;
-  gap: 6px;
+  gap: 7px;
   min-width: 0;
 }
 
@@ -132,32 +133,33 @@ h1 {
 }
 
 .pick-icon {
-  flex: 0 0 34px;
+  flex: 0 0 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #ffffff;
-  border: 1px solid var(--border-dark);
-  border-radius: 8px;
+  background: var(--layer-raised);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
   cursor: pointer;
-  color: var(--accent-dark);
+  color: var(--accent);
   padding: 0;
+  box-shadow: 0 1px 2px rgba(34, 40, 42, 0.06);
 }
 
 .pick-icon:hover {
   background: var(--accent);
-  border-color: var(--accent-dark);
+  border-color: var(--accent);
   color: #ffffff;
 }
 
 input[type="text"],
 input[type="number"],
 select {
-  padding: 8px 10px;
+  padding: 9px 12px;
   font-size: 13px;
   border: 1px solid var(--border-color);
-  border-radius: 7px;
-  background: #ffffff;
+  border-radius: 10px;
+  background: var(--layer-raised);
   color: var(--text-primary);
 }
 
@@ -169,16 +171,18 @@ input:focus,
 select:focus {
   outline: none;
   border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(18, 71, 74, 0.15);
 }
 
 /* Buttons */
 button {
-  padding: 8px;
+  padding: 9px;
   font-size: 13px;
-  border: 1px solid var(--border-dark);
-  border-radius: 7px;
+  border: none;
+  border-radius: 10px;
   cursor: pointer;
   font-weight: 600;
+  box-shadow: 0 2px 5px rgba(34, 40, 42, 0.1);
 }
 
 .full-width {
@@ -188,42 +192,41 @@ button {
 .btn-primary {
   background: var(--accent);
   color: #ffffff;
-  border-color: var(--accent-dark);
 }
 .btn-primary:hover {
-  background: var(--accent-dark);
+  background: var(--accent-hover);
 }
 
 .btn-secondary {
-  background: var(--btn-secondary);
-  color: #ffffff;
-  border-color: var(--btn-secondary-dark);
+  background: var(--accent-tan);
+  color: var(--text-primary);
+  box-shadow: none;
 }
 .btn-secondary:hover {
-  background: var(--btn-secondary-dark);
+  background: #ddcfa8;
 }
 
 .btn-accent {
-  background: var(--accent-dark);
+  background: var(--accent-hover);
   color: #ffffff;
-  border-color: #033f53;
-  padding: 10px;
+  padding: 11px;
   font-size: 14px;
 }
 .btn-accent:hover {
-  background: #033f53;
+  background: #082a2c;
 }
 
 button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  box-shadow: none;
 }
 
 .field-list {
   list-style: none;
   padding: 0;
-  margin: 0 0 8px 0;
-  max-height: 100px;
+  margin: 0 0 9px 0;
+  max-height: 110px;
   overflow-y: auto;
 }
 
@@ -231,13 +234,14 @@ button:disabled {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 6px 10px;
-  background: #f7fbfd;
+  padding: 7px 11px;
+  background: var(--layer-raised);
   border: 1px solid var(--border-color);
-  border-radius: 7px;
-  margin-bottom: 4px;
+  border-radius: 10px;
+  margin-bottom: 5px;
   font-size: 12px;
   color: var(--text-primary);
+  box-shadow: 0 1px 2px rgba(34, 40, 42, 0.05);
 }
 
 .field-list li button {
@@ -245,14 +249,15 @@ button:disabled {
   color: var(--text-secondary);
   padding: 2px 6px;
   font-weight: bold;
+  box-shadow: none;
 }
 .field-list li button:hover {
-  color: #d64545;
+  color: #b3402f;
 }
 
 .actions {
   display: flex;
-  gap: 8px;
+  gap: 9px;
 }
 
 .actions button {
@@ -261,14 +266,15 @@ button:disabled {
 }
 
 .status {
-  margin-top: 8px;
+  margin-top: 9px;
   font-size: 12px;
-  color: var(--accent-dark);
+  color: var(--accent);
   min-height: 14px;
+  font-weight: 600;
 }
 
 .preview-section {
-  margin-top: 10px;
+  margin-top: 12px;
   padding-top: 10px;
   border-top: 1px solid var(--border-color);
 }
@@ -277,7 +283,7 @@ button:disabled {
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
-  margin-bottom: 6px;
+  margin-bottom: 7px;
   color: var(--text-secondary);
 }
 
@@ -285,7 +291,7 @@ button:disabled {
   max-height: 160px;
   overflow: auto;
   border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border-radius: 10px;
 }
 
 #previewTable {
@@ -297,7 +303,7 @@ button:disabled {
 #previewTable th,
 #previewTable td {
   border: 1px solid var(--border-color);
-  padding: 5px 7px;
+  padding: 6px 8px;
   text-align: left;
   white-space: nowrap;
   max-width: 140px;
@@ -307,13 +313,14 @@ button:disabled {
 }
 
 #previewTable th {
-  background: var(--bg-panel);
+  background: var(--accent-soft);
+  color: var(--accent-hover);
   position: sticky;
   top: 0;
 }
 
 #previewTable tr:nth-child(even) td {
-  background: #f7fbfd;
+  background: var(--layer-raised);
 }
 
 /* Help modal */
@@ -323,7 +330,7 @@ button:disabled {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(15, 42, 56, 0.5);
+  background: rgba(34, 40, 42, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -331,28 +338,28 @@ button:disabled {
 }
 
 .modal-box {
-  background: #ffffff;
-  border-radius: 10px;
+  background: var(--layer-raised);
+  border-radius: 14px;
   width: 370px;
   max-height: 500px;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 10px 30px rgba(15, 42, 56, 0.2);
+  box-shadow: 0 16px 40px rgba(34, 40, 42, 0.25);
 }
 
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 14px;
+  padding: 13px 15px;
   font-weight: 700;
-  color: var(--accent-dark);
+  color: var(--accent);
   font-size: 14px;
   border-bottom: 1px solid var(--border-color);
 }
 
 .modal-body {
-  padding: 12px 16px;
+  padding: 13px 16px;
   overflow-y: auto;
   font-size: 12px;
   line-height: 1.55;
@@ -374,12 +381,12 @@ button:disabled {
 }
 
 .modal-body code {
-  background: var(--bg-panel);
+  background: var(--accent-tan);
   padding: 1px 5px;
   border-radius: 4px;
-  color: var(--accent-dark);
+  color: var(--accent-hover);
 }
 
 .modal-body strong {
-  color: var(--accent-dark);
+  color: var(--accent);
 }
